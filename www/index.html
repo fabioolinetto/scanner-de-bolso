@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Scanner de Bolso</title>
+<meta name="theme-color" content="#FFC41F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Scanner">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ Meus documentos ============ -->
+<section class="screen" id="home">
+  <header class="topbar">
+    <div class="brand"><img src="icons/icon-192.png" alt="" width="34" height="34"><span>Scanner <b>de Bolso</b></span></div>
+  </header>
+  <main class="scroll">
+    <div class="sechead"><h1>Meus documentos</h1><span class="pill" id="docCount">0</span></div>
+    <div id="docList" class="doclist"></div>
+  </main>
+  <footer class="bar two">
+    <label class="btn pick" data-pick="gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>Importar fotos<input type="file" class="inGal" accept="image/*" multiple></label>
+    <label class="btn primary pick" data-pick="cam"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.6"/></svg>Escanear<input type="file" class="inCam" accept="image/*" capture="environment"></label>
+  </footer>
+</section>
+
+<!-- ============ Documento ============ -->
+<section class="screen" id="doc" hidden>
+  <header class="topbar">
+    <button class="iconbtn back" id="docBack" aria-label="Voltar para Meus documentos"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg><span>Documentos</span></button>
+    <button class="iconbtn" id="docMenu" aria-label="Mais opções"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
+  </header>
+  <main class="scroll">
+    <div class="titlebox">
+      <label for="docName" class="eyebrow">Nome do documento</label>
+      <div class="namefield"><input id="docName" type="text" autocomplete="off" spellcheck="false" maxlength="80"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></div>
+      <p class="meta"><span id="pageCount">0 páginas</span><span class="dot">·</span><span id="saveState" class="savestate">Salvo no aparelho</span></p>
+    </div>
+    <div id="pageGrid" class="grid"></div>
+  </main>
+  <footer class="bar three">
+    <label class="btn pick" data-pick="cam"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.6"/></svg>Câmera<input type="file" class="inCam" accept="image/*" capture="environment"></label>
+    <label class="btn pick" data-pick="gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>Galeria<input type="file" class="inGal" accept="image/*" multiple></label>
+    <button class="btn primary" id="bOut"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Enviar</button>
+  </footer>
+</section>
+
+<!-- ============ Recorte (logo após a foto e ao recortar de novo) ============ -->
+<section class="overlay" id="editor" hidden>
+  <header class="ov-top">
+    <button class="tbtn" id="eCancel">Cancelar</button>
+    <div class="ov-title"><span id="eTitle">Ajuste o recorte</span><small id="eHint">Arraste os pontos até os cantos da folha</small></div>
+    <span class="tspacer"></span>
+  </header>
+  <div class="stage" id="eStage"><canvas id="editCanvas"></canvas></div>
+  <footer class="ov-bottom">
+    <div class="tools">
+      <button class="tool" id="eRotL"><svg viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 0 2.3-5.6M4 4v5h5"/></svg>Girar ⟲</button>
+      <button class="tool" id="eRotR"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>Girar ⟳</button>
+      <button class="tool" id="eAuto"><svg viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><path d="m9 12 2 2 4-4"/></svg>Detectar</button>
+      <button class="tool" id="eFull"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1.5"/></svg>Inteira</button>
+    </div>
+    <button class="bigbtn" id="eApply">Adicionar</button>
+  </footer>
+</section>
+
+<!-- ============ Página ============ -->
+<section class="overlay" id="viewer" hidden>
+  <header class="ov-top">
+    <button class="tbtn" id="vBack"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>Páginas</button>
+    <div class="ov-title"><span id="vTitle">Página 1</span><small id="vSub">Toque num filtro para comparar</small></div>
+    <button class="tbtn danger" id="vDel" aria-label="Excluir página"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+  </header>
+  <div class="stage"><div id="viewBox"></div></div>
+  <footer class="ov-bottom">
+    <div class="chips" id="chips" role="group" aria-label="Filtro">
+      <button class="chip" data-f="magico">Mágico</button>
+      <button class="chip" data-f="pb">Preto e branco</button>
+      <button class="chip" data-f="cinza">Cinza</button>
+      <button class="chip" data-f="original">Original</button>
+    </div>
+    <div class="tools">
+      <button class="tool" id="vRotL"><svg viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 0 2.3-5.6M4 4v5h5"/></svg>Girar ⟲</button>
+      <button class="tool" id="vRotR"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>Girar ⟳</button>
+      <button class="tool" id="vCrop"><svg viewBox="0 0 24 24"><path d="M6 2v16h16M2 6h16v16"/></svg>Recortar</button>
+      <button class="tool" id="vShare"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Enviar</button>
+    </div>
+  </footer>
+</section>
+
+<!-- ============ Enviar / salvar ============ -->
+<div class="sheetwrap" id="outSheet" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="outTitle">
+    <div class="grab"></div>
+    <h2 id="outTitle">Documento</h2>
+    <p class="sub" id="outSub">1 página</p>
+    <div class="fmt" role="group" aria-label="Formato">
+      <button class="fbtn" data-fmt="pdf" aria-pressed="true">PDF<small>todas as páginas num arquivo</small></button>
+      <button class="fbtn" data-fmt="jpg" aria-pressed="false">JPG<small>uma imagem por página</small></button>
+    </div>
+    <button class="act primary" id="oShare"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span>Compartilhar<small>WhatsApp, e-mail, Google Drive…</small></span></button>
+    <button class="act" id="oSave"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7m-3-3 3 3 3-3M10 18.5h4"/></svg><span>Salvar cópia no celular<small id="oSaveHint">pasta Documentos › Scanner de Bolso</small></span></button>
+    <button class="act ghost" id="oClose">Fechar</button>
+  </div>
+</div>
+
+<!-- ============ Confirmação ============ -->
+<div class="sheetwrap" id="confirmSheet" hidden>
+  <div class="sheet" role="alertdialog" aria-labelledby="cTitle">
+    <div class="grab"></div>
+    <h2 id="cTitle">Excluir?</h2>
+    <p class="sub plain" id="cText"></p>
+    <button class="act dangerbtn" id="cYes">Excluir</button>
+    <button class="act ghost" id="cNo">Cancelar</button>
+  </div>
+</div>
+
+<div class="sheetwrap" id="menuSheet" hidden>
+  <div class="sheet" role="menu">
+    <div class="grab"></div>
+    <button class="act" id="mRename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg><span>Renomear</span></button>
+    <button class="act" id="mOut"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span>Enviar ou salvar cópia</span></button>
+    <button class="act dangertext" id="mDelete"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Excluir documento</span></button>
+    <button class="act ghost" id="mClose">Fechar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="busy" id="busy" hidden><div><span class="spin"></span><span id="busyMsg">Processando…</span></div></div>
+
+<script src="vendor/capacitor.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="js/detect.js"></script>
+<script src="js/imaging.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

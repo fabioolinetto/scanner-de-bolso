@@ -1,0 +1,62 @@
+name: Gerar APK (Android)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Copiar o app para o projeto Android
+        run: npx cap sync android
+
+      - name: Preparar chave de assinatura
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Falta o secret KEYSTORE_BASE64 (veja o README)"; exit 1; fi
+          mkdir -p android/keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > android/keystore/scanner-de-bolso.jks
+
+      - name: Compilar APK
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../ScannerDeBolso.apk
+
+      - name: Guardar o APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScannerDeBolso-apk
+          path: ScannerDeBolso.apk
+
+      - name: Publicar na página de Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Scanner de Bolso 1.0.${{ github.run_number }}
+          body: "Baixe o arquivo **ScannerDeBolso.apk** abaixo e abra no celular Android para instalar ou atualizar."
+          files: ScannerDeBolso.apk

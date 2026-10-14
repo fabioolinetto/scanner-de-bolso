@@ -1,0 +1,7 @@
+{
+  "appId": "br.com.fabioolinetto.scannerdebolso",
+  "appName": "Scanner de Bolso",
+  "webDir": "www",
+  "android": { "backgroundColor": "#f1f1ee" },
+  "ios": { "backgroundColor": "#f1f1ee", "contentInset": "never" }
+}
